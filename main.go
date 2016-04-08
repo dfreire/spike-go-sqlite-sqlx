@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"gopkg.in/guregu/null.v3"
 
@@ -16,9 +18,10 @@ import (
 
 func main() {
 	schema := `CREATE TABLE user (
-        name text,
-        birth_date text NULL,
-        birth_place text NULL
+		id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        name        TEXT,
+        birth_date  TEXT NULL,
+        birth_place TEXT NULL
     );`
 
 	db, err := sqlx.Open("sqlite3", ":memory:")
@@ -57,4 +60,17 @@ func main() {
 		enc.Encode(u)
 	}
 
+	s := []string{}
+	s = append(s, "UPDATE user SET")
+
+	m := make(map[string]interface{})
+	m["birth_place"] = "London"
+
+	for key, value := range m {
+		s = append(s, fmt.Sprintf("%s = %+v", key, value))
+	}
+
+	s = append(s, "WHERE id in (1, 2, 3)")
+
+	log.Println(strings.Join(s, " "))
 }
