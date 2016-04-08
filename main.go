@@ -34,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	userBirthPlace := `INSERT INTO user (name, birth_date) VALUES (?, ?)`
+	userBirthPlace := `INSERT INTO user (name, birth_place) VALUES (?, ?)`
 	userAll := `INSERT INTO user (name, birth_date, birth_place) VALUES (?, ?, ?)`
 
 	db.MustExec(userBirthPlace, "Mark", "New York")
@@ -42,6 +42,7 @@ func main() {
 	db.MustExec(userAll, "Helen", "1983-03-13 12:23:32.871", "Johannesburg")
 
 	type User struct {
+		Id         int
 		Name       string
 		BirthDate  null.String `db:"birth_date"`
 		BirthPlace null.String `db:"birth_place"`
@@ -67,10 +68,17 @@ func main() {
 	m["birth_place"] = "London"
 
 	for key, value := range m {
-		s = append(s, fmt.Sprintf("%s = %+v", key, value))
+		s = append(s, fmt.Sprintf("%s = '%+v'", key, value))
 	}
 
-	s = append(s, "WHERE id in (1, 2, 3)")
+	s = append(s, "WHERE id IN (?, ?, ?)")
 
-	log.Println(strings.Join(s, " "))
+	db.MustExec(strings.Join(s, " "), 1, 2, 3)
+
+	rows, err = db.Queryx("SELECT * FROM user")
+	for rows.Next() {
+		var u User
+		err = rows.StructScan(&u)
+		enc.Encode(u)
+	}
 }
