@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
+	"fmt"
 	"os"
 
 	"github.com/guregu/null"
@@ -28,8 +28,6 @@ type Book struct {
 }
 
 func main() {
-	enc := json.NewEncoder(os.Stdout)
-
 	db, _ := sql.Open("sqlite3", ":memory:")
 	db.Exec(SCHEMA)
 
@@ -46,7 +44,7 @@ func main() {
 			"year":  2002,
 		})
 	insert1.RunWith(db).Exec()
-	log.Println(insert1.ToSql())
+	fmt.Println(insert1.ToSql())
 
 	insert2 := squirrel.Insert("book").
 		SetMap(squirrel.Eq{
@@ -55,7 +53,7 @@ func main() {
 			"year":  2005,
 		})
 	insert2.RunWith(db).Exec()
-	log.Println(insert2.ToSql())
+	fmt.Println(insert2.ToSql())
 
 	insert3 := squirrel.Insert("book").
 		SetMap(squirrel.Eq{
@@ -64,15 +62,9 @@ func main() {
 			"year":  2012,
 		})
 	insert3.RunWith(db).Exec()
-	log.Println(insert3.ToSql())
+	fmt.Println(insert3.ToSql())
 
-	sql, args, _ := squirrel.Select("*").From("book").ToSql()
-	rows, _ := dbx.Queryx(sql, args...)
-	for rows.Next() {
-		var book Book
-		rows.StructScan(&book)
-		enc.Encode(book)
-	}
+	selectAll(dbx)
 
 	update := squirrel.Update("book").
 		SetMap(squirrel.Eq{
@@ -82,25 +74,25 @@ func main() {
 			"id": []string{id1, id2, id3},
 		})
 	update.RunWith(db).Exec()
-	log.Println(update.ToSql())
+	fmt.Println(update.ToSql())
 
-	sql, args, _ = squirrel.Select("*").From("book").ToSql()
-	rows, _ = dbx.Queryx(sql, args...)
-	for rows.Next() {
-		var book Book
-		rows.StructScan(&book)
-		enc.Encode(book)
-	}
+	selectAll(dbx)
 
 	delete := squirrel.Delete("book").
 		Where(squirrel.Eq{
-			"id": []string{id1, id2},
+			"id": []string{id2, id3},
 		})
 	delete.RunWith(db).Exec()
-	log.Println(update.ToSql())
+	fmt.Println(update.ToSql())
 
-	sql, args, _ = squirrel.Select("author").From("book").ToSql()
-	rows, _ = dbx.Queryx(sql, args...)
+	selectAll(dbx)
+}
+
+func selectAll(dbx *sqlx.DB) {
+	enc := json.NewEncoder(os.Stdout)
+
+	sql, args, _ := squirrel.Select("*").From("book").ToSql()
+	rows, _ := dbx.Queryx(sql, args...)
 	for rows.Next() {
 		var book Book
 		rows.StructScan(&book)
