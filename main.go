@@ -1,5 +1,11 @@
 package main
 
+import (
+	"log"
+
+	"gopkg.in/Masterminds/squirrel.v1"
+)
+
 // "github.com/jmoiron/sqlx"
 // "gopkg.in/jmoiron/sqlx.sqlx-v1.1"
 
@@ -8,10 +14,24 @@ package main
 type Record map[string]interface{}
 
 func InsertRecord(tableName string, record Record) {
+	cols := []string{}
+	vals := []interface{}{}
 
+	for col, val := range record {
+		cols = append(cols, col)
+		vals = append(vals, val)
+	}
+
+	sql, args, _ := squirrel.
+		Insert(tableName).
+		Columns(cols...).
+		Values(vals...).
+		ToSql()
+
+	log.Println(sql, args)
 }
 
-func UpdateRecordsById(tableName string, ids []string, record Record) {
+func UpdateRecordsById(tableName string, record Record, ids []string) {
 
 }
 
@@ -32,6 +52,11 @@ type Book struct {
 }
 
 func main() {
+	InsertRecord("book", map[string]interface{}{
+		"ID":    "1",
+		"Title": "El Mal de Montano",
+		"Year":  2005,
+	})
 	// db, err := sqlx.Open("sqlite3", ":memory:")
 	// if err != nil {
 	// 	log.Fatal(err)
