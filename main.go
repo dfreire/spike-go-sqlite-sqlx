@@ -13,7 +13,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-const SCHEMA = `CREATE TABLE book (
+const SCHEMA = `CREATE TABLE IF NOT EXISTS book (
 	id     TEXT PRIMARY KEY,
 	title  TEXT,
 	author TEXT,

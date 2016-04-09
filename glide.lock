@@ -1,0 +1,22 @@
+hash: 2e386af523f1263946ab67ce41ce89594a89f1957429ac24944573d3b0decee9
+updated: 2016-04-09T15:59:59.597643363+01:00
+imports:
+- name: github.com/guregu/null
+  version: 41961cea0328defc5f95c1c473f89ebf0d1813f6
+- name: github.com/jmoiron/sqlx
+  version: 398dd5876282499cdfd4cb8ea0f31a672abe9495
+  subpackages:
+  - reflectx
+- name: github.com/lann/builder
+  version: f22ce00fd9394014049dad11c244859432bd6820
+- name: github.com/lann/ps
+  version: 62de8c46ede02a7675c4c79c84883eb164cb71e3
+- name: github.com/mattn/go-sqlite3
+  version: 37aa7c6f5bc95b7264de70cd1f0ca1d39228ebd6
+- name: gopkg.in/Masterminds/squirrel.v1
+  version: ef37c531bf2d8443632ee11c8e5760101b4bea28
+- name: labix.org/v2/mgo
+  version: "287"
+  subpackages:
+  - bson
+devImports: []
