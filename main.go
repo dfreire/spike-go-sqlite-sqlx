@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 
+	"labix.org/v2/mgo/bson"
+
 	"gopkg.in/Masterminds/squirrel.v1"
 )
 
@@ -11,23 +13,6 @@ import (
 
 // _ "github.com/mattn/go-sqlite3"
 
-type Record map[string]interface{}
-
-func InsertRecord(tableName string, record Record) {
-	sql, args, _ := squirrel.Insert(tableName).SetMap(record).ToSql()
-	log.Println(sql, args)
-}
-
-func UpdateRecordsById(tableName string, record Record, ids []string) {
-	sql, args, _ := squirrel.Update(tableName).SetMap(record).Where(squirrel.Eq{"id": ids}).ToSql()
-	log.Println(sql, args)
-}
-
-func DeleteRecordsById(tableName string, ids []string) {
-	sql, args, _ := squirrel.Delete(tableName).Where(squirrel.Eq{"id": ids}).ToSql()
-	log.Println(sql, args)
-}
-
 const SCHEMA = `CREATE TABLE book (
 	id     TEXT PRIMARY KEY,
 	title  TEXT,
@@ -35,30 +20,42 @@ const SCHEMA = `CREATE TABLE book (
 	year   NUMBER
 );`
 
-type Book struct {
-	ID     string
-	Title  string
-	Author string
-	year   int
-}
-
 func main() {
-	InsertRecord("book", Record{
-		"ID":    "1",
-		"Title": "El Mal de Montano",
-		"Year":  2002,
-	})
+	id1 := bson.NewObjectId().Hex()
+	id2 := bson.NewObjectId().Hex()
 
-	InsertRecord("book", Record{
-		"ID":    "2",
-		"Title": "Doctor Pasavento",
-		"Year":  2005,
-	})
+	sql, args, _ := squirrel.
+		Insert("book").
+		SetMap(squirrel.Eq{
+			"id":    id1,
+			"title": "El Mal de Montano",
+			"year":  2002,
+		}).
+		ToSql()
+	log.Println(sql, args)
 
-	UpdateRecordsById("book", Record{
-		"Author": "Enrique Vila-Matas",
-	}, []string{"1", "2"})
+	sql, args, _ = squirrel.
+		Insert("book").
+		SetMap(squirrel.Eq{
+			"id":    id2,
+			"title": "Doctor Pasavento",
+			"year":  2005,
+		}).
+		ToSql()
+	log.Println(sql, args)
 
-	DeleteRecordsById("book", []string{"1", "2"})
+	sql, args, _ = squirrel.
+		Update("book").
+		SetMap(squirrel.Eq{
+			"Author": "Enrique Vila-Matas",
+		}).
+		Where(squirrel.Eq{"id": []string{id1, id2}}).
+		ToSql()
+	log.Println(sql, args)
 
+	sql, args, _ = squirrel.
+		Delete("book").
+		Where(squirrel.Eq{"id": []string{id1, id2}}).
+		ToSql()
+	log.Println(sql, args)
 }
