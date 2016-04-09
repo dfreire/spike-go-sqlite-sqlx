@@ -1,17 +1,17 @@
 package main
 
 import (
+	"database/sql"
+	"encoding/json"
 	"log"
+	"os"
 
-	"labix.org/v2/mgo/bson"
-
+	"github.com/guregu/null"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
 	"gopkg.in/Masterminds/squirrel.v1"
+	"labix.org/v2/mgo/bson"
 )
-
-// "github.com/jmoiron/sqlx"
-// "gopkg.in/jmoiron/sqlx.sqlx-v1.1"
-
-// _ "github.com/mattn/go-sqlite3"
 
 const SCHEMA = `CREATE TABLE book (
 	id     TEXT PRIMARY KEY,
@@ -20,42 +20,90 @@ const SCHEMA = `CREATE TABLE book (
 	year   NUMBER
 );`
 
+type Book struct {
+	Id     string      `json:"id", dbx:"id"`
+	Title  string      `json:"title", dbx:"title"`
+	Author null.String `json:"author", dbx:"author"`
+	Year   int         `json:"year", dbx:"year"`
+}
+
 func main() {
+	enc := json.NewEncoder(os.Stdout)
+
+	db, _ := sql.Open("sqlite3", ":memory:")
+	db.Exec(SCHEMA)
+
+	dbx := sqlx.NewDb(db, "sqlite3")
+
 	id1 := bson.NewObjectId().Hex()
 	id2 := bson.NewObjectId().Hex()
+	id3 := bson.NewObjectId().Hex()
 
-	sql, args, _ := squirrel.
-		Insert("book").
+	insert1 := squirrel.Insert("book").
 		SetMap(squirrel.Eq{
 			"id":    id1,
 			"title": "El Mal de Montano",
 			"year":  2002,
-		}).
-		ToSql()
-	log.Println(sql, args)
+		})
+	insert1.RunWith(db).Exec()
+	log.Println(insert1.ToSql())
 
-	sql, args, _ = squirrel.
-		Insert("book").
+	insert2 := squirrel.Insert("book").
 		SetMap(squirrel.Eq{
 			"id":    id2,
 			"title": "Doctor Pasavento",
 			"year":  2005,
-		}).
-		ToSql()
-	log.Println(sql, args)
+		})
+	insert2.RunWith(db).Exec()
+	log.Println(insert2.ToSql())
 
-	sql, args, _ = squirrel.
-		Update("book").
+	insert3 := squirrel.Insert("book").
+		SetMap(squirrel.Eq{
+			"id":    id3,
+			"title": "Aire de Dylan",
+			"year":  2012,
+		})
+	insert3.RunWith(db).Exec()
+	log.Println(insert3.ToSql())
+
+	sql, args, _ := squirrel.Select("*").From("book").ToSql()
+	rows, _ := dbx.Queryx(sql, args...)
+	for rows.Next() {
+		var book Book
+		rows.StructScan(&book)
+		enc.Encode(book)
+	}
+
+	update := squirrel.Update("book").
 		SetMap(squirrel.Eq{
 			"Author": "Enrique Vila-Matas",
 		}).
-		Where(squirrel.Eq{"id": []string{id1, id2}}).
-		ToSql()
-	log.Println(sql, args)
+		Where(squirrel.Eq{
+			"id": []string{id1, id2, id3},
+		})
+	update.RunWith(db).Exec()
+	log.Println(update.ToSql())
 
-	sql, args, _ = squirrel.
-		Delete("book").
-		Where(squirrel.Eq{"id": []string{id1, id2}}).
-		ToSql()
-	log.Println(sql, args)
+	sql, args, _ = squirrel.Select("*").From("book").ToSql()
+	rows, _ = dbx.Queryx(sql, args...)
+	for rows.Next() {
+		var book Book
+		rows.StructScan(&book)
+		enc.Encode(book)
+	}
+
+	delete := squirrel.Delete("book").
+		Where(squirrel.Eq{
+			"id": []string{id1, id2},
+		})
+	delete.RunWith(db).Exec()
+	log.Println(update.ToSql())
+
+	sql, args, _ = squirrel.Select("author").From("book").ToSql()
+	rows, _ = dbx.Queryx(sql, args...)
+	for rows.Next() {
+		var book Book
+		rows.StructScan(&book)
+		enc.Encode(book)
+	}
 }
