@@ -24,7 +24,7 @@ type Book struct {
 	Id     string      `json:"id", dbx:"id"`
 	Title  string      `json:"title", dbx:"title"`
 	Author null.String `json:"author", dbx:"author"`
-	Year   int         `json:"year", dbx:"year"`
+	Year   null.Int    `json:"year", dbx:"year"`
 }
 
 func main() {
