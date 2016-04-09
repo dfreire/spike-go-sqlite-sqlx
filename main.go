@@ -19,12 +19,13 @@ func InsertRecord(tableName string, record Record) {
 }
 
 func UpdateRecordsById(tableName string, record Record, ids []string) {
-	sql, args, _ := squirrel.Update(tableName).Table(tableName).SetMap(record).Where(squirrel.Eq{"id": ids}).ToSql()
+	sql, args, _ := squirrel.Update(tableName).SetMap(record).Where(squirrel.Eq{"id": ids}).ToSql()
 	log.Println(sql, args)
 }
 
 func DeleteRecordsById(tableName string, ids []string) {
-
+	sql, args, _ := squirrel.Delete(tableName).Where(squirrel.Eq{"id": ids}).ToSql()
+	log.Println(sql, args)
 }
 
 const SCHEMA = `CREATE TABLE book (
@@ -47,13 +48,17 @@ func main() {
 		"Title": "El Mal de Montano",
 		"Year":  2002,
 	})
+
 	InsertRecord("book", Record{
 		"ID":    "2",
 		"Title": "Doctor Pasavento",
 		"Year":  2005,
 	})
+
 	UpdateRecordsById("book", Record{
 		"Author": "Enrique Vila-Matas",
 	}, []string{"1", "2"})
+
+	DeleteRecordsById("book", []string{"1", "2"})
 
 }
